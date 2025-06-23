@@ -20,11 +20,17 @@ jobs:
 
       - name: Install Xcode Command Line Tools
         run: |
-          xcode-select --install
+          if ! xcode-select -p &>/dev/null; then
+            echo "Installing Xcode Command Line Tools..."
+            xcode-select --install
+            sudo xcode-select --switch /Library/Developer/CommandLineTools
+          else
+            echo "Xcode Command Line Tools already installed."
+          fi
 
       - name: Install dependencies
         run: |
-          brew install libfido2 openssl autoconf automake libtool pkgconf
+          brew install libfido2 openssl autoconf automake libtool pkgconf gcc
 
       - name: Clone OpenSSH portable repository
         run: |
