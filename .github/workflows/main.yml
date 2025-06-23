@@ -74,3 +74,41 @@ jobs:
           files: sk-libfido2.dylib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          SHA=$(shasum -a 256 sk-libfido2.dylib | awk '{print $1}')
+          echo "hash=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Create Cask directory
+        run: mkdir -p Casks
+
+      - name: Update Homebrew Cask
+        run: |
+          cat > Casks/openssh-sk.rb <<EOF
+          cask "openssh-sk" do
+            version "${{ steps.extract-version.outputs.OPENSSH_VERSION }}"
+            sha256 "${{ steps.sha256.outputs.hash }}"
+
+            url "https://github.com/${{ github.repository }}/releases/download/#{version}/sk-libfido2.dylib"
+            name "OpenSSH SK Middleware"
+            desc "Enables FIDO/U2F support for the native macOS OpenSSH client"
+            homepage "https://github.com/${{ github.repository }}"
+
+            livecheck do
+              url :stable
+              strategy :github_latest
+            end
+
+            artifact "sk-libfido2.dylib", target: "/usr/local/lib/sk-libfido2.dylib"
+
+            uninstall delete: "/usr/local/lib/sk-libfido2.dylib"
+          end
+          EOF
+
+      - name: Commit and push Cask
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Homebrew Cask to version ${{ steps.extract-version.outputs.OPENSSH_VERSION }}"
+          file_pattern: Casks/openssh-sk.rb
