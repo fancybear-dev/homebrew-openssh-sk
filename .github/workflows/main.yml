@@ -64,7 +64,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.extract-version.outputs.OPENSSH_VERSION }}
-          name: sk-libfido2.dylib for OpenSSH ${{ steps.extract-version.outputs.OPENSSH_VERSION }}
+          name: ${{ steps.extract-version.outputs.OPENSSH_VERSION }} - sk-libfido2.dylib
           body: |
             This release contains the `sk-libfido2.dylib` library compiled for macOS (Sonoma 14.0 or later) to enable hardware security key support (e.g., YubiKey) with the macOS built-in OpenSSH client.
 
