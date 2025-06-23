@@ -23,7 +23,7 @@ Then, install the cask:
 brew install --cask openssh-sk
 ```
 
-This command will download the correct `sk-libfido2.dylib` from the [releases page](https://github.com/fancybear-dev/homebrew-openssh-sk/releases) and place it at `/usr/local/lib/sk-libfido2.dylib`. The native OpenSSH client on macOS will automatically use this library when you use a security key for authentication.
+This command will download the correct `sk-libfido2.dylib` from the [releases page](https://github.com/fancybear-dev/homebrew-openssh-sk/releases) and place it at `/usr/local/lib/sk-libfido2-fancybear-dev.dylib`.
 
 ## Uninstallation
 
