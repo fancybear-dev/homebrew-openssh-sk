@@ -43,6 +43,7 @@ jobs:
           BREW_LIBFIDO2_PATH: $(ls -d /opt/homebrew/Cellar/libfido2/*)
         run: |
           cd openssh-portable
+          gcc -v
           autoreconf -i
           export CFLAGS="-L$BREW_OPENSSL_PATH/lib -I$BREW_OPENSSL_PATH/include -L$BREW_LIBFIDO2_PATH/lib -I$BREW_LIBFIDO2_PATH/include -Wno-error=implicit-function-declaration"
           export LDFLAGS="-L$BREW_OPENSSL_PATH/lib -L$BREW_LIBFIDO2_PATH/lib"
