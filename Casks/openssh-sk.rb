@@ -12,7 +12,7 @@ cask "openssh-sk" do
     strategy :github_latest
   end
 
-  artifact "sk-libfido2.dylib", target: "/usr/local/lib/sk-libfido2.dylib"
+  artifact "sk-libfido2.dylib", target: "/usr/local/lib/sk-libfido2-fancybear-dev.dylib"
 
-  uninstall delete: "/usr/local/lib/sk-libfido2.dylib"
+  uninstall delete: "/usr/local/lib/sk-libfido2-fancybear-dev.dylib"
 end
