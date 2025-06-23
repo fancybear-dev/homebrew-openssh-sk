@@ -20,13 +20,7 @@ jobs:
 
       - name: Install Xcode Command Line Tools
         run: |
-          if ! xcode-select -p &>/dev/null; then
-            echo "Installing Xcode Command Line Tools..."
-            xcode-select --install
-            sudo xcode-select --switch /Library/Developer/CommandLineTools
-          else
-            echo "Xcode Command Line Tools already installed."
-          fi
+          xcode-select --install
 
       - name: Install dependencies
         run: |
