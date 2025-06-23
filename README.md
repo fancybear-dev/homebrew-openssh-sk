@@ -4,6 +4,8 @@ This repository provides a pre-compiled `sk-libfido2.dylib` for macOS, enabling 
 
 This is built from the official [OpenSSH portable source code](https://github.com/openssh/openssh-portable). The GitHub Action in this repository automatically checks for new OpenSSH versions daily, builds the `dylib`, and creates a new release and Homebrew Cask.
 
+Please fork this repo if you want to use it, as the supply chain risk is highly sensitive. 
+
 ## Requirements
 
 - macOS Sonoma (14.0) or later.
@@ -24,6 +26,8 @@ brew install --cask openssh-sk
 ```
 
 This command will download the correct `sk-libfido2.dylib` from the [releases page](https://github.com/fancybear-dev/homebrew-openssh-sk/releases) and place it at `/usr/local/lib/sk-libfido2-fancybear-dev.dylib`.
+
+When running for the first time, Apple will refuse to execute it due to security mechanisms. To allow the execution, select "Allow anyway" at "Settings" -> "Privacy & Security" -> "Security" (section below). If the option is not available, ensure to first set "Allow applications from" to "App Store & Known Developers" at the same section.
 
 ## Uninstallation
 
