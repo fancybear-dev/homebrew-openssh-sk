@@ -110,6 +110,12 @@ jobs:
                 echo 'export SSH_SK_PROVIDER=/usr/local/lib/sk-libfido2-fancybear-dev.dylib' >> ~/.zshenv
               Before testing it out, either source the file or restart your terminal:
                 source ~/.zshenv
+
+              When running for the first time, Apple will refuse to execute it due to security mechanisms. 
+              
+              To allow the execution, select "Allow anyway" at "Settings" -> "Privacy & Security" -> "Security" (section below). 
+              
+              If the option is not available, ensure to first set "Allow applications from" to "App Store & Known Developers" at the same section.
             EOS
 
             uninstall delete: "/usr/local/lib/sk-libfido2-fancybear-dev.dylib"
