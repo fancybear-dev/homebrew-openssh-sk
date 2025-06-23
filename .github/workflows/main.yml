@@ -1,4 +1,4 @@
-name: Update Homebrew Formula for OpenSSH with YubiKey Support
+name: Build and release
 
 on:
   schedule:
@@ -12,134 +12,53 @@ permissions:
   contents: write
 
 jobs:
-  update-formula:
+  build-and-release:
     runs-on: macos-latest
     steps:
-      - name: Checkout repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install Homebrew dependencies
+      - name: Install dependencies
         run: |
-          brew install libfido2 openssl pkg-config autoconf automake libtool jq
+          brew install libfido2 openssl@3 autoconf automake libtool pkgconf
 
-      - name: Get latest OpenSSH tag
-        id: get-tag
+      - name: Clone OpenSSH portable repository
         run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/openssh/openssh-portable/tags | jq -r '.[0].name')
-          CURRENT_TAG=$(grep 'version "' openssh-sk.rb | cut -d'"' -f2 || echo "none")
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-          echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
-          echo "OPENSSH_VERSION=${LATEST_TAG#V_}" >> $GITHUB_ENV
+          git clone --quiet https://github.com/openssh/openssh-portable.git
 
-      - name: Check if update is needed
-        id: check-update
-        run: |
-          if [ "${{ env.LATEST_TAG }}" != "V_${{ env.CURRENT_TAG }}" ] && [ "${{ env.CURRENT_TAG }}" != "${{ env.OPENSSH_VERSION }}" ]; then
-            echo "Update needed: ${CURRENT_TAG} -> ${OPENSSH_VERSION}"
-            echo "needs_update=true" >> $GITHUB_ENV
-          else
-            echo "No update needed: current=${CURRENT_TAG}, latest=${OPENSSH_VERSION}"
-            echo "needs_update=false" >> $GITHUB_ENV
-          fi
-
-      - name: Clone and build OpenSSH
-        if: env.needs_update == 'true'
-        run: |
-          git clone --depth 1 --branch ${{ env.LATEST_TAG }} https://github.com/openssh/openssh-portable.git
-          cd openssh-portable
-          autoreconf
-          ./configure --with-security-key-builtin \
-            --with-libfido2=$(brew --prefix libfido2) \
-            --with-ssl-dir=$(brew --prefix openssl) \
-            --prefix=/tmp/openssh-install
-          make
-          make install
-
-      - name: Calculate SHA256
-        if: env.needs_update == 'true'
-        id: calculate-sha
-        run: |
-          SHA256=$(curl -sL https://github.com/openssh/openssh-portable/archive/${{ env.LATEST_TAG }}.tar.gz | shasum -a 256 | cut -d' ' -f1)
-          echo "SHA256=$SHA256" >> $GITHUB_ENV
-
-      - name: Update Homebrew formula
-        if: env.needs_update == 'true'
-        run: |
-          cat << EOF > openssh-sk.rb
-          class OpensshSk < Formula
-            desc "OpenSSH with security key support for YubiKeys"
-            homepage "https://www.openssh.com/"
-            url "https://github.com/openssh/openssh-portable/archive/${{ env.LATEST_TAG }}.tar.gz"
-            version "${{ env.OPENSSH_VERSION }}"
-            sha256 "${{ env.SHA256 }}"
-
-            depends_on "libfido2"
-            depends_on "openssl"
-            depends_on "pkg-config" => :build
-            depends_on "autoconf" => :build
-            depends_on "automake" => :build
-            depends_on "libtool" => :build
-
-            def install
-              system "autoreconf"
-              system "./configure", "--with-security-key-builtin",
-                "--with-libfido2=#{Formula['libfido2'].opt_prefix}",
-                "--with-ssl-dir=#{Formula['openssl@1.1'].opt_prefix}",
-                "--prefix=#{prefix}"
-              system "make"
-              system "make", "install"
-              lib.install "sk-libfido2.dylib"
-            end
-
-            def caveats
-              <<~EOS
-                The sk-libfido2.dylib library is installed to #{HOMEBREW_PREFIX}/lib.
-                To use with SSH, add to your ~/.zshenv:
-                  export SSH_SK_PROVIDER=#{HOMEBREW_PREFIX}/lib/sk-libfido2.dylib
-                Or, use: ssh -O SecurityKeyProvider=\$SSH_SK_PROVIDER user@host
-              EOS
-            end
-          end
-          EOF
-
-      - name: Create or update README
-        run: |
-          cat << EOF > README.md
-          # OpenSSH with YubiKey Support
-
-          This repository provides a Homebrew formula for installing OpenSSH with YubiKey (FIDO2) support on macOS.
-
-          ## Installation
-
-          1. Add the tap:
-             \`\`\`bash
-             brew tap fancybear-dev/openssh-sk
-             \`\`\`
-
-          2. Install the formula:
-             \`\`\`bash
-             brew install openssh-sk
-             \`\`\`
-
-          ## About
-
-          This repository is automatically updated with the latest OpenSSH release from the [openssh-portable](https://github.com/openssh/openssh-portable) repository, built with \`--with-security-key-builtin\` for YubiKey support.
-          EOF
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add README.md
-          git commit -m "Update README.md" || true
-          git push origin main || true
+      - name: Build sk-libfido2.dylib
+        working-directory: openssh-portable
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit and push formula changes
-        if: env.needs_update == 'true'
+          BREW_PREFIX: /opt/homebrew
+          BREW_OPENSSL_PATH: $(ls -d /opt/homebrew/Cellar/openssl@3/*)
+          BREW_LIBFIDO2_PATH: $(ls -d /opt/homebrew/Cellar/libfido2/*)
         run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git add openssh-sk.rb
-          git commit -m "Update openssh-sk to ${{ env.OPENSSH_VERSION }}"
-          git push origin main
+          autoreconf -i
+          export CFLAGS="-L$BREW_OPENSSL_PATH/lib -I$BREW_OPENSSL_PATH/include -L$BREW_LIBFIDO2_PATH/lib -I$BREW_LIBFIDO2_PATH/include -Wno-error=implicit-function-declaration"
+          export LDFLAGS="-L$BREW_OPENSSL_PATH/lib -L$BREW_LIBFIDO2_PATH/lib"
+          ./configure --quiet --with-security-key-standalone
+          make --quiet clean
+          make --quiet
+          mv sk-libfido2.dylib ../sk-libfido2.dylib
+
+      - name: Extract OpenSSH version
+        working-directory: openssh-portable
+        id: extract-version
+        run: |
+          VERSION=$(grep '^#define SSH_VERSION' version.h | awk '{print $3}' | tr -d '"')
+          echo "OPENSSH_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.extract-version.outputs.OPENSSH_VERSION }}
+          name: sk-libfido2.dylib for OpenSSH ${{ steps.extract-version.outputs.OPENSSH_VERSION }}
+          body: |
+            This release contains the `sk-libfido2.dylib` library compiled for macOS (Sonoma 14.0 or later) to enable hardware security key support (e.g., YubiKey) with the macOS built-in OpenSSH client.
+
+            Built from OpenSSH portable source: https://github.com/openssh/openssh-portable
+          draft: false
+          prerelease: false
+          files: sk-libfido2.dylib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
