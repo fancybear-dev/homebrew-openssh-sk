@@ -34,7 +34,7 @@ jobs:
 
       - name: Clone OpenSSH portable repository
         run: |
-          git clone --quiet https://github.com/openssh/openssh-portable.git
+          git clone https://github.com/openssh/openssh-portable.git
 
       - name: Build sk-libfido2.dylib
         env:
@@ -46,9 +46,9 @@ jobs:
           autoreconf -i
           export CFLAGS="-L$BREW_OPENSSL_PATH/lib -I$BREW_OPENSSL_PATH/include -L$BREW_LIBFIDO2_PATH/lib -I$BREW_LIBFIDO2_PATH/include -Wno-error=implicit-function-declaration"
           export LDFLAGS="-L$BREW_OPENSSL_PATH/lib -L$BREW_LIBFIDO2_PATH/lib"
-          ./configure --quiet --with-security-key-standalone
-          make --quiet clean
-          make --quiet
+          ./configure --with-security-key-standalone
+          make clean
+          make
           mv sk-libfido2.dylib ../sk-libfido2.dylib
 
       - name: Extract OpenSSH version
