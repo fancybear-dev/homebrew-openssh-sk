@@ -31,21 +31,20 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install libfido2 openssl autoconf automake libtool pkgconf gcc
+          brew upgrade
+          brew install libfido2 openssl autoconf automake libtool pkgconf
 
       - name: Clone OpenSSH portable repository
         run: |
           git clone https://github.com/openssh/openssh-portable.git
 
       - name: Build sk-libfido2.dylib
+        working-directory: openssh-portable
         env:
-          BREW_PREFIX: /opt/homebrew
           BREW_OPENSSL_PATH: $(ls -d /opt/homebrew/Cellar/openssl@3/*)
           BREW_LIBFIDO2_PATH: $(ls -d /opt/homebrew/Cellar/libfido2/*)
         run: |
-          sw_vers -productVersion | cut -d '.' -f1,2
-          cd openssh-portable
-          autoreconf -i
+          autoreconf -i -v
           export CFLAGS="-L$BREW_OPENSSL_PATH/lib -I$BREW_OPENSSL_PATH/include -L$BREW_LIBFIDO2_PATH/lib -I$BREW_LIBFIDO2_PATH/include -Wno-error=implicit-function-declaration"
           export LDFLAGS="-L$BREW_OPENSSL_PATH/lib -L$BREW_LIBFIDO2_PATH/lib"
           ./configure --with-security-key-standalone
