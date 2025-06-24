@@ -1,5 +1,7 @@
 # OpenSSH SK Middleware for macOS
 
+WARNING: this is a fun PoC, but best to do `brew install openssh` as they support security keys as configured in the Cask here; https://github.com/Homebrew/homebrew-core/blob/4caae34f18f7dc5a0903ebe92275ae9397010aa1/Formula/o/openssh.rb#L89
+
 This repository provides a pre-compiled `sk-libfido2.dylib` for macOS, enabling hardware security key (FIDO/U2F, e.g., YubiKey) support for the native OpenSSH client that comes with macOS.
 
 This is built from the official [OpenSSH portable source code](https://github.com/openssh/openssh-portable). The GitHub Action in this repository automatically checks for new OpenSSH versions daily, builds the `dylib`, and creates a new release and Homebrew Cask.
