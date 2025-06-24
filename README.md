@@ -37,4 +37,4 @@ To uninstall, you can use Homebrew:
 brew uninstall --cask openssh-sk
 ```
 
-This will remove the `/usr/local/lib/sk-libfido2.dylib` file.
+This will remove the `/usr/local/lib/sk-libfido2-fancybear-dev.dylib` file.
