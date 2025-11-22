@@ -1,6 +1,6 @@
 cask "openssh-sk" do
   version "OpenSSH_10.2"
-  sha256 "7e726d51a4f1f180887427f24bee63d3ddb74e4c8d12c34c3623a4eca9d1f079"
+  sha256 "3163e47b1a9bf51a1ce2bac854b02ee2f4bedac0fecac1ff4ae5b03b04646d79"
 
   url "https://github.com/fancybear-dev/homebrew-openssh-sk/releases/download/#{version}/sk-libfido2.dylib"
   name "OpenSSH SK Middleware"
